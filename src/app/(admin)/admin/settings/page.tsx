@@ -1,9 +1,14 @@
-import { getFiscalYears } from "./actions";
+import { getFiscalYears, getCompanySettings } from "./actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CompanySettingsForm } from "./company-settings-form";
+import { FiscalYearFormDialog } from "./fiscal-year-form";
 
 export default async function SettingsPage() {
-  const fiscalYears = await getFiscalYears();
+  const [fiscalYears, companySettings] = await Promise.all([
+    getFiscalYears(),
+    getCompanySettings(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -12,8 +17,9 @@ export default async function SettingsPage() {
         <p className="text-muted-foreground text-sm">System configuration</p>
       </div>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Fiscal Years</CardTitle>
+          <FiscalYearFormDialog />
         </CardHeader>
         <CardContent className="space-y-2">
           {fiscalYears.map((fy) => (
@@ -29,17 +35,7 @@ export default async function SettingsPage() {
           ))}
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Company Details</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm space-y-1">
-          <div>JRISE Smart Trading Pty Limited</div>
-          <div>ACN: 627 266 337</div>
-          <div>PO Box 4399 North Rocks NSW 2151</div>
-          <div>jerrold@jrise.com.au</div>
-        </CardContent>
-      </Card>
+      <CompanySettingsForm settings={companySettings} />
     </div>
   );
 }
