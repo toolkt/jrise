@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { PlusIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,14 +23,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createTransactionSchema, type CreateTransactionInput } from "@/lib/validations/transaction";
-import { createTransaction } from "./actions";
+import { createTransaction, updateTransaction } from "./actions";
 
-interface TransactionFormDialogProps {
+type TransactionForEdit = {
+  id: string;
+  clientId: string;
+  type: string;
+  amount: number;
+  effectiveDate: Date | string;
+  description: string | null;
+  notes: string | null;
+};
+
+export function TransactionFormDialog({
+  clients,
+  transaction,
+  trigger,
+}: {
   clients: { id: string; name: string; clientCode: string }[];
-}
-
-export function TransactionFormDialog({ clients }: TransactionFormDialogProps) {
+  transaction?: TransactionForEdit;
+  trigger: React.ReactElement;
+}) {
   const [open, setOpen] = useState(false);
+  const isEditing = !!transaction;
+
+  const effectiveDateDefault = transaction?.effectiveDate
+    ? new Date(transaction.effectiveDate).toISOString().split("T")[0]
+    : "";
 
   const {
     register,
@@ -42,10 +61,20 @@ export function TransactionFormDialog({ clients }: TransactionFormDialogProps) {
   } = useForm<CreateTransactionInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createTransactionSchema) as any,
-    defaultValues: {
-      description: "",
-      notes: "",
-    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    defaultValues: (isEditing
+      ? {
+          clientId: transaction.clientId,
+          type: transaction.type as CreateTransactionInput["type"],
+          amount: transaction.amount,
+          effectiveDate: effectiveDateDefault,
+          description: transaction.description ?? "",
+          notes: transaction.notes ?? "",
+        }
+      : {
+          description: "",
+          notes: "",
+        }) as any,
   });
 
   const clientId = watch("clientId") ?? "";
@@ -53,8 +82,13 @@ export function TransactionFormDialog({ clients }: TransactionFormDialogProps) {
 
   async function onSubmit(data: CreateTransactionInput) {
     try {
-      await createTransaction(data);
-      toast.success("Transaction created successfully");
+      if (isEditing) {
+        await updateTransaction(transaction.id, data);
+        toast.success("Transaction updated successfully");
+      } else {
+        await createTransaction(data);
+        toast.success("Transaction created successfully");
+      }
       reset();
       setOpen(false);
     } catch (error) {
@@ -64,17 +98,10 @@ export function TransactionFormDialog({ clients }: TransactionFormDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button>
-            <PlusIcon className="h-4 w-4 mr-1" />
-            Add Transaction
-          </Button>
-        }
-      />
+      <DialogTrigger render={trigger} />
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Transaction</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit Transaction" : "Record Transaction"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1">
@@ -179,7 +206,7 @@ export function TransactionFormDialog({ clients }: TransactionFormDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Create Transaction"}
+              {isSubmitting ? "Saving..." : isEditing ? "Update" : "Save Transaction"}
             </Button>
           </div>
         </form>

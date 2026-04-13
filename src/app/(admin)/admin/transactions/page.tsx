@@ -1,7 +1,9 @@
+import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import { getTransactions } from "./actions";
 import { TransactionTable } from "./transaction-table";
 import { TransactionFormDialog } from "./transaction-form";
+import { Button } from "@/components/ui/button";
 
 export default async function TransactionsPage() {
   const [transactions, clients] = await Promise.all([
@@ -22,9 +24,12 @@ export default async function TransactionsPage() {
             Manage fund transactions for all clients
           </p>
         </div>
-        <TransactionFormDialog clients={clients} />
+        <TransactionFormDialog
+          clients={clients}
+          trigger={<Button><Plus className="h-4 w-4 mr-2" /> Add Transaction</Button>}
+        />
       </div>
-      <TransactionTable transactions={transactions} />
+      <TransactionTable transactions={transactions} clients={clients} />
     </div>
   );
 }

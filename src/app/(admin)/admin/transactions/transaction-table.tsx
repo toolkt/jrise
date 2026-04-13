@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   Table,
@@ -15,8 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { getTransactions } from "./actions";
 import { deleteTransaction } from "./actions";
+import { TransactionFormDialog } from "./transaction-form";
 
-type Transaction = Awaited<ReturnType<typeof getTransactions>>[number];
+type TransactionWithClient = Awaited<ReturnType<typeof getTransactions>>[number];
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-AU", {
@@ -60,11 +61,13 @@ function typeBadgeVariant(type: string): "default" | "destructive" | "secondary"
   }
 }
 
-interface TransactionTableProps {
-  transactions: Transaction[];
-}
-
-export function TransactionTable({ transactions }: TransactionTableProps) {
+export function TransactionTable({
+  transactions,
+  clients,
+}: {
+  transactions: TransactionWithClient[];
+  clients: { id: string; name: string; clientCode: string }[];
+}) {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
@@ -90,7 +93,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
             <TableHead>Type</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead className="w-[60px]"></TableHead>
+            <TableHead className="w-[100px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,33 +104,52 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
               </TableCell>
             </TableRow>
           ) : (
-            transactions.map((tx) => (
-              <TableRow key={tx.id}>
+            transactions.map((t) => (
+              <TableRow key={t.id}>
                 <TableCell className="font-mono text-sm">
-                  {formatDate(tx.effectiveDate)}
+                  {formatDate(t.effectiveDate)}
                 </TableCell>
-                <TableCell>{tx.client.name}</TableCell>
+                <TableCell>{t.client.name}</TableCell>
                 <TableCell>
-                  <Badge variant={typeBadgeVariant(tx.type)}>
-                    {typeLabel(tx.type)}
+                  <Badge variant={typeBadgeVariant(t.type)}>
+                    {typeLabel(t.type)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-mono text-sm">
-                  {formatCurrency(tx.amount)}
+                  {formatCurrency(t.amount)}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {tx.description || "—"}
+                  {t.description || "—"}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={deleting === tx.id}
-                    onClick={() => handleDelete(tx.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <TransactionFormDialog
+                      clients={clients}
+                      transaction={{
+                        id: t.id,
+                        clientId: t.clientId,
+                        type: t.type,
+                        amount: Number(t.amount),
+                        effectiveDate: t.effectiveDate,
+                        description: t.description,
+                        notes: t.notes,
+                      }}
+                      trigger={
+                        <Button variant="ghost" size="icon">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={deleting === t.id}
+                      onClick={() => handleDelete(t.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
