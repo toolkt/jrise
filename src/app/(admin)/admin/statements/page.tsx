@@ -9,7 +9,15 @@ export default async function StatementsPage() {
     getClients(),
   ]);
 
-  const activeClients = clients.filter((c) => c.isActive);
+  const activeClients = clients
+    .filter((c) => c.isActive)
+    .map((c) => ({ id: c.id, name: c.name, clientCode: c.clientCode }));
+
+  const plainStatements = statements.map((s) => ({
+    ...s,
+    closingBalance: Number(s.closingBalance),
+    client: { ...s.client, openingPrincipal: Number(s.client.openingPrincipal) },
+  }));
 
   return (
     <div>
@@ -21,7 +29,7 @@ export default async function StatementsPage() {
       </div>
       <div className="space-y-6">
         <StatementGenerator clients={activeClients} />
-        <StatementTable statements={statements} />
+        <StatementTable statements={plainStatements as any} />
       </div>
     </div>
   );

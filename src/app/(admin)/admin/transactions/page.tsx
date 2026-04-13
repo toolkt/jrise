@@ -6,7 +6,7 @@ import { TransactionFormDialog } from "./transaction-form";
 import { Button } from "@/components/ui/button";
 
 export default async function TransactionsPage() {
-  const [transactions, clients] = await Promise.all([
+  const [rawTransactions, clients] = await Promise.all([
     getTransactions(),
     db.client.findMany({
       where: { isActive: true },
@@ -14,6 +14,12 @@ export default async function TransactionsPage() {
       orderBy: { name: "asc" },
     }),
   ]);
+
+  const transactions = rawTransactions.map((t) => ({
+    ...t,
+    amount: Number(t.amount),
+    client: { ...t.client, openingPrincipal: Number(t.client.openingPrincipal) },
+  }));
 
   return (
     <div>
@@ -29,7 +35,7 @@ export default async function TransactionsPage() {
           trigger={<Button><Plus className="h-4 w-4 mr-2" /> Add Transaction</Button>}
         />
       </div>
-      <TransactionTable transactions={transactions} clients={clients} />
+      <TransactionTable transactions={transactions as any} clients={clients} />
     </div>
   );
 }

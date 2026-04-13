@@ -3,7 +3,16 @@ import { ClientTable } from "./client-table";
 import { ClientFormDialog } from "./client-form";
 
 export default async function ClientsPage() {
-  const clients = await getClients();
+  const rawClients = await getClients();
+  const clients = rawClients.map((c) => ({
+    ...c,
+    openingPrincipal: Number(c.openingPrincipal),
+    clientSettings: c.clientSettings ? {
+      ...c.clientSettings,
+      rebatePercentage: Number(c.clientSettings.rebatePercentage),
+      withholdingTaxRate: Number(c.clientSettings.withholdingTaxRate),
+    } : null,
+  }));
 
   return (
     <div>
@@ -16,7 +25,7 @@ export default async function ClientsPage() {
         </div>
         <ClientFormDialog />
       </div>
-      <ClientTable clients={clients} />
+      <ClientTable clients={clients as any} />
     </div>
   );
 }
