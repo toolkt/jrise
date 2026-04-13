@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-utils";
+import bcrypt from "bcryptjs";
 import {
   createClientSchema,
   updateClientSchema,
@@ -27,6 +28,7 @@ export async function getClient(id: string) {
     where: { id },
     include: {
       clientSettings: true,
+      user: true,
       clientMonthlyRecords: {
         orderBy: { month: "desc" },
       },
@@ -121,4 +123,79 @@ export async function updateClientSettings(clientId: string, input: ClientSettin
 
   revalidatePath(`/admin/clients/${clientId}`);
   return settings;
+}
+
+export async function enablePortalAccess(
+  clientId: string,
+  email: string,
+  password: string
+) {
+  await requireAdmin();
+
+  const client = await db.client.findUniqueOrThrow({ where: { id: clientId } });
+  if (client.userId) throw new Error("Portal access already enabled");
+
+  const nameParts = client.name.split(" ");
+  const firstName = nameParts[0] ?? "";
+  const lastName = nameParts.slice(1).join(" ") || "";
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  const user = await db.user.create({
+    data: {
+      email,
+      passwordHash,
+      role: "CLIENT",
+      firstName,
+      lastName,
+    },
+  });
+
+  await db.client.update({
+    where: { id: clientId },
+    data: { userId: user.id },
+  });
+
+  revalidatePath(`/admin/clients/${clientId}`);
+}
+
+export async function resetPortalPassword(
+  clientId: string,
+  newPassword: string
+) {
+  await requireAdmin();
+
+  const client = await db.client.findUniqueOrThrow({
+    where: { id: clientId },
+    include: { user: true },
+  });
+  if (!client.userId || !client.user) throw new Error("No portal access");
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
+  await db.user.update({
+    where: { id: client.userId },
+    data: { passwordHash },
+  });
+
+  revalidatePath(`/admin/clients/${clientId}`);
+}
+
+export async function disablePortalAccess(clientId: string) {
+  await requireAdmin();
+
+  const client = await db.client.findUniqueOrThrow({ where: { id: clientId } });
+  if (!client.userId) throw new Error("No portal access");
+
+  await db.user.update({
+    where: { id: client.userId },
+    data: { isActive: false },
+  });
+
+  await db.client.update({
+    where: { id: clientId },
+    data: { userId: null },
+  });
+
+  revalidatePath(`/admin/clients/${clientId}`);
 }
