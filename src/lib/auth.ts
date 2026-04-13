@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
@@ -32,7 +30,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (isLoginPage) {
         if (isLoggedIn) {
-          const redirectTo = isAdmin ? "/admin/dashboard" : "/portal/dashboard";
+          const redirectTo = isAdmin
+            ? "/admin/dashboard"
+            : "/portal/dashboard";
           return Response.redirect(new URL(redirectTo, request.nextUrl));
         }
         return true;
@@ -65,6 +65,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Dynamic import to avoid pulling Prisma into Edge Runtime (middleware)
+        const { db } = await import("@/lib/db");
+        const bcrypt = await import("bcryptjs");
 
         const user = await db.user.findUnique({
           where: { email: credentials.email as string },
