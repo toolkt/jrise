@@ -23,6 +23,7 @@ enum StatementFrequency {
 
 enum DisclaimerType {
   STD
+  FI
   CUSTOM
 }
 
@@ -52,6 +53,11 @@ enum EmailStatus {
   PENDING
   SENT
   FAILED
+}
+
+enum CashFlowMode {
+  WITH
+  WITHOUT
 }
 
 // ─── Models ──────────────────────────────────────────────────────────────────
@@ -113,6 +119,7 @@ model ClientSettings {
   disclaimerType        DisclaimerType     @default(STD) @map("disclaimer_type")
   customDisclaimerText  String?            @map("custom_disclaimer_text")
   interestRepaidType    InterestRepaidType @default(NORMAL) @map("interest_repaid_type")
+  cashFlowMode          CashFlowMode       @default(WITHOUT) @map("cash_flow_mode")
   createdAt             DateTime           @default(now()) @map("created_at")
   updatedAt             DateTime           @updatedAt @map("updated_at")
 
@@ -134,6 +141,21 @@ model FiscalYear {
   monthlyInterestRates MonthlyInterestRate[]
 
   @@map("fiscal_years")
+}
+
+model CompanySettings {
+  id               String   @id @default(uuid())
+  companyName      String   @default("JRISE Smart Trading Pty Limited") @map("company_name")
+  acn              String   @default("627 266 337")
+  addressLine1     String   @default("PO Box 4399 North Rocks NSW 2151") @map("address_line1")
+  addressLine2     String?  @map("address_line2")
+  email            String   @default("jerrold@jrise.com.au")
+  phone            String?
+  stdDisclaimerText String  @default("Your statement does NOT incorporate any applicable taxes. We strongly recommend seeking guidance from a certified accountant or financial advisor to assess any potential tax liability or obligations you may incur.") @map("std_disclaimer_text")
+  fiDisclaimerText  String  @default("Your statement includes a 10% Foreign Investor Withholding Tax. JRISE Smart Trading Pty Ltd will pay this amount to the Australian Taxation Office (ATO) on your behalf. However, we still strongly recommend seeking guidance from a certified accountant or financial advisor to assess any further potential tax liabilities or obligations you may incur.") @map("fi_disclaimer_text")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("company_settings")
 }
 
 model MonthlyInterestRate {
