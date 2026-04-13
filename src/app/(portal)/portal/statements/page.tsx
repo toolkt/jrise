@@ -99,33 +99,23 @@ export default async function PortalStatementsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <a
+                        href={`/api/pdf/${s.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         title="View PDF"
-                        render={
-                          <a
-                            href={`/api/pdf/${s.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          />
-                        }
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                       >
                         <EyeIcon className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      </a>
+                      <a
+                        href={`/api/pdf/${s.id}`}
+                        download={`${s.statementNumber}.pdf`}
                         title="Download PDF"
-                        render={
-                          <a
-                            href={`/api/pdf/${s.id}`}
-                            download={`${s.statementNumber}.pdf`}
-                          />
-                        }
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                       >
                         <DownloadIcon className="h-4 w-4" />
-                      </Button>
+                      </a>
                     </div>
                   </TableCell>
                 </TableRow>

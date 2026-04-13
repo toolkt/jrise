@@ -281,33 +281,23 @@ export function PortalDashboard({
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{typeLabel(s.type)}</Badge>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    render={
-                      <a
-                        href={`/api/pdf/${s.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      />
-                    }
+                  <a
+                    href={`/api/pdf/${s.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                   >
                     <EyeIcon className="h-3.5 w-3.5" />
                     View
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    render={
-                      <a
-                        href={`/api/pdf/${s.id}`}
-                        download={`${s.number}.pdf`}
-                      />
-                    }
+                  </a>
+                  <a
+                    href={`/api/pdf/${s.id}`}
+                    download={`${s.number}.pdf`}
+                    className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                   >
                     <DownloadIcon className="h-3.5 w-3.5" />
                     Download PDF
-                  </Button>
+                  </a>
                 </div>
               </div>
             ))}

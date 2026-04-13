@@ -124,33 +124,23 @@ export function StatementTable({ statements }: StatementTableProps) {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <a
+                    href={`/api/pdf/${statement.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     title="View PDF"
-                    render={
-                      <a
-                        href={`/api/pdf/${statement.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      />
-                    }
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                   >
                     <EyeIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  </a>
+                  <a
+                    href={`/api/pdf/${statement.id}`}
+                    download={`${statement.statementNumber}.pdf`}
                     title="Download PDF"
-                    render={
-                      <a
-                        href={`/api/pdf/${statement.id}`}
-                        download={`${statement.statementNumber}.pdf`}
-                      />
-                    }
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                   >
                     <DownloadIcon className="h-4 w-4" />
-                  </Button>
+                  </a>
                   <Button
                     variant="ghost"
                     size="icon"
