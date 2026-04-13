@@ -118,6 +118,7 @@ export async function updateClientSettings(clientId: string, input: ClientSettin
       disclaimerType: data.disclaimerType,
       customDisclaimerText: data.customDisclaimerText ?? "",
       interestRepaidType: data.interestRepaidType,
+      cashFlowMode: data.cashFlowMode,
     },
   });
 

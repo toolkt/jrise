@@ -21,9 +21,10 @@ export const clientSettingsSchema = z.object({
   rebatePercentage: z.coerce.number().min(0).max(1),
   withholdingTaxEnabled: z.boolean(),
   withholdingTaxRate: z.coerce.number().min(0).max(1),
-  disclaimerType: z.enum(["STD", "CUSTOM"]),
+  disclaimerType: z.enum(["STD", "FI", "CUSTOM"]),
   customDisclaimerText: z.string().optional().default(""),
   interestRepaidType: z.enum(["NORMAL", "ACCRUED"]),
+  cashFlowMode: z.enum(["WITH", "WITHOUT"]),
 });
 
 export type CreateClientInput = z.infer<typeof createClientSchema>;

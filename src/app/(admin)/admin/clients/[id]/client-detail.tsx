@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientFormDialog } from "../client-form";
 import { PortalAccess } from "./portal-access";
+import { ClientSettingsForm } from "./client-settings-form";
 import type { getClient } from "../actions";
 
 type Client = NonNullable<Awaited<ReturnType<typeof getClient>>> & {
@@ -111,6 +112,7 @@ export function ClientDetail({ client }: ClientDetailProps) {
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="statements">Statements</TabsTrigger>
           <TabsTrigger value="contact">Contact Info</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         {/* Monthly Records Tab */}
@@ -297,6 +299,31 @@ export function ClientDetail({ client }: ClientDetailProps) {
                   </Badge>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings">
+          <Card className="mt-2">
+            <CardContent className="pt-6">
+              {client.clientSettings ? (
+                <ClientSettingsForm
+                  clientId={client.id}
+                  settings={{
+                    rebateEnabled: client.clientSettings.rebateEnabled,
+                    rebatePercentage: parseFloat(client.clientSettings.rebatePercentage.toString()),
+                    withholdingTaxEnabled: client.clientSettings.withholdingTaxEnabled,
+                    withholdingTaxRate: parseFloat(client.clientSettings.withholdingTaxRate.toString()),
+                    disclaimerType: client.clientSettings.disclaimerType,
+                    customDisclaimerText: client.clientSettings.customDisclaimerText,
+                    interestRepaidType: client.clientSettings.interestRepaidType,
+                    cashFlowMode: client.clientSettings.cashFlowMode,
+                  }}
+                />
+              ) : (
+                <p className="text-muted-foreground">No settings available.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
