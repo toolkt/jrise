@@ -12,9 +12,12 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientFormDialog } from "../client-form";
+import { PortalAccess } from "./portal-access";
 import type { getClient } from "../actions";
 
-type Client = NonNullable<Awaited<ReturnType<typeof getClient>>>;
+type Client = NonNullable<Awaited<ReturnType<typeof getClient>>> & {
+  user: { id: string; email: string; isActive: boolean } | null;
+};
 
 function formatCurrency(value: string | number | { toString(): string }) {
   const num = typeof value === "number" ? value : parseFloat(value.toString());
@@ -57,6 +60,13 @@ export function ClientDetail({ client }: ClientDetailProps) {
         </div>
         <ClientFormDialog client={client} />
       </div>
+
+      {/* Portal Access */}
+      <PortalAccess
+        clientId={client.id}
+        clientEmail={client.email}
+        portalUser={client.user ? { id: client.user.id, email: client.user.email, isActive: client.user.isActive } : null}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
