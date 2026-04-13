@@ -37,6 +37,9 @@ export function StatementGenerator({ clients }: StatementGeneratorProps) {
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [balanceType, setBalanceType] = useState("PREV MON");
+  const [interestPeriod, setInterestPeriod] = useState("MONTH");
+  const [ratePeriod, setRatePeriod] = useState("%MONTH");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -127,10 +130,60 @@ export function StatementGenerator({ clients }: StatementGeneratorProps) {
             </div>
           </div>
 
-          <div className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Generating..." : "Generate"}
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="balanceType">Balance Type</Label>
+              <Select value={balanceType} onValueChange={(v) => v && setBalanceType(v)}>
+                <SelectTrigger id="balanceType">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="OPEN">Opening Balance</SelectItem>
+                  <SelectItem value="PREV MON">Previous Month&apos;s Closing</SelectItem>
+                  <SelectItem value="PREV QTR">Previous Quarter&apos;s Closing</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="interestPeriod">Interest Earned Label</Label>
+              <Select value={interestPeriod} onValueChange={(v) => v && setInterestPeriod(v)}>
+                <SelectTrigger id="interestPeriod">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTH">Interest Earned This Month</SelectItem>
+                  <SelectItem value="MONTH FI">Gross Interest Earned This Month</SelectItem>
+                  <SelectItem value="QUARTER">Interest Earned This Quarter</SelectItem>
+                  <SelectItem value="QUARTER FI">Gross Interest Earned This Quarter</SelectItem>
+                  <SelectItem value="EOFY">Interest Earned This FY</SelectItem>
+                  <SelectItem value="EOFY FI">Gross Interest Earned This FY</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ratePeriod">Interest Rate Label</Label>
+              <Select value={ratePeriod} onValueChange={(v) => v && setRatePeriod(v)}>
+                <SelectTrigger id="ratePeriod">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="%MONTH">Interest Rate This Month</SelectItem>
+                  <SelectItem value="%MONTH FI">Gross Interest Rate This Month</SelectItem>
+                  <SelectItem value="%QUARTER">Interest Rate This Quarter</SelectItem>
+                  <SelectItem value="%QUARTER FI">Gross Interest Rate This Quarter</SelectItem>
+                  <SelectItem value="%EOFY">Interest Rate This FY</SelectItem>
+                  <SelectItem value="%EOFY FI">Gross Interest Rate This FY</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting ? "Generating..." : "Generate"}
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>
