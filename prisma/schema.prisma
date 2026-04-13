@@ -1,0 +1,214 @@
+// This is the Prisma schema for the JRISE Investment Management System
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+enum StatementFrequency {
+  MONTHLY
+  QUARTERLY
+}
+
+enum DisclaimerType {
+  STD
+  CUSTOM
+}
+
+enum InterestRepaidType {
+  NORMAL
+  ACCRUED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  INTEREST_REPAID
+  CAPITAL_REDUCTION
+  REBATE
+  MISCELLANEOUS
+}
+
+enum StatementType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  CUSTOM
+  CLOSE
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid()) @map("id")
+  email        String   @unique @map("email")
+  passwordHash String   @map("password_hash")
+  role         UserRole @map("role")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  client               Client?
+  monthlyInterestRates MonthlyInterestRate[]
+  fundTransactions     FundTransaction[]
+
+  @@map("users")
+}
+
+model Client {
+  id                 String             @id @default(uuid()) @map("id")
+  userId             String?            @unique @map("user_id")
+  clientCode         String             @unique @map("client_code")
+  name               String             @map("name")
+  addressLine1       String             @map("address_line1")
+  addressLine2       String?            @map("address_line2")
+  addressLine3       String?            @map("address_line3")
+  addressLine4       String?            @map("address_line4")
+  email              String             @map("email")
+  mobile             String?            @map("mobile")
+  statementFrequency StatementFrequency @map("statement_frequency")
+  openingPrincipal   Decimal            @map("opening_principal") @db.Decimal(15, 2)
+  startDate          DateTime           @map("start_date") @db.Date
+  isActive           Boolean            @default(true) @map("is_active")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  user                 User?                  @relation(fields: [userId], references: [id])
+  clientSettings       ClientSettings?
+  clientMonthlyRecords ClientMonthlyRecord[]
+  fundTransactions     FundTransaction[]
+  statements           Statement[]
+
+  @@map("clients")
+}
+
+model ClientSettings {
+  id                    String             @id @default(uuid()) @map("id")
+  clientId              String             @unique @map("client_id")
+  rebateEnabled         Boolean            @default(false) @map("rebate_enabled")
+  rebatePercentage      Decimal            @default(0) @map("rebate_percentage") @db.Decimal(5, 4)
+  withholdingTaxEnabled Boolean            @default(false) @map("withholding_tax_enabled")
+  withholdingTaxRate    Decimal            @default(0) @map("withholding_tax_rate") @db.Decimal(5, 4)
+  disclaimerType        DisclaimerType     @default(STD) @map("disclaimer_type")
+  customDisclaimerText  String?            @map("custom_disclaimer_text")
+  interestRepaidType    InterestRepaidType @default(NORMAL) @map("interest_repaid_type")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@map("client_settings")
+}
+
+model FiscalYear {
+  id        String   @id @default(uuid()) @map("id")
+  label     String   @map("label")
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  isCurrent Boolean  @default(false) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  monthlyInterestRates MonthlyInterestRate[]
+
+  @@map("fiscal_years")
+}
+
+model MonthlyInterestRate {
+  id           String   @id @default(uuid()) @map("id")
+  fiscalYearId String   @map("fiscal_year_id")
+  month        DateTime @map("month") @db.Date
+  interestRate Decimal  @map("interest_rate") @db.Decimal(8, 6)
+  notes        String?  @map("notes")
+  enteredBy    String   @map("entered_by")
+  isLocked     Boolean  @default(false) @map("is_locked")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  fiscalYear           FiscalYear            @relation(fields: [fiscalYearId], references: [id])
+  enteredByUser        User                  @relation(fields: [enteredBy], references: [id])
+  clientMonthlyRecords ClientMonthlyRecord[]
+
+  @@unique([fiscalYearId, month])
+  @@map("monthly_interest_rates")
+}
+
+model ClientMonthlyRecord {
+  id                  String   @id @default(uuid()) @map("id")
+  clientId            String   @map("client_id")
+  interestRateId      String   @map("interest_rate_id")
+  month               DateTime @map("month") @db.Date
+  openingBalance      Decimal  @map("opening_balance") @db.Decimal(15, 2)
+  closingBalance      Decimal  @map("closing_balance") @db.Decimal(15, 2)
+  interestEarned      Decimal  @map("interest_earned") @db.Decimal(15, 2)
+  interestRateApplied Decimal  @map("interest_rate_applied") @db.Decimal(8, 6)
+  percentageShare     Decimal  @map("percentage_share") @db.Decimal(8, 6)
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  // Relations
+  client       Client              @relation(fields: [clientId], references: [id])
+  interestRate MonthlyInterestRate @relation(fields: [interestRateId], references: [id])
+
+  @@unique([clientId, month])
+  @@map("client_monthly_records")
+}
+
+model FundTransaction {
+  id            String          @id @default(uuid()) @map("id")
+  clientId      String          @map("client_id")
+  type          TransactionType @map("type")
+  amount        Decimal         @map("amount") @db.Decimal(15, 2)
+  effectiveDate DateTime        @map("effective_date") @db.Date
+  description   String          @map("description")
+  notes         String?         @map("notes")
+  enteredBy     String          @map("entered_by")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  // Relations
+  client        Client @relation(fields: [clientId], references: [id])
+  enteredByUser User   @relation(fields: [enteredBy], references: [id])
+
+  @@map("fund_transactions")
+}
+
+model Statement {
+  id              String        @id @default(uuid()) @map("id")
+  clientId        String        @map("client_id")
+  statementNumber String        @unique @map("statement_number")
+  type            StatementType @map("type")
+  periodStart     DateTime      @map("period_start") @db.Date
+  periodEnd       DateTime      @map("period_end") @db.Date
+  closingBalance  Decimal       @map("closing_balance") @db.Decimal(15, 2)
+  pdfPath         String?       @map("pdf_path")
+  generatedAt     DateTime      @map("generated_at")
+  emailedAt       DateTime?     @map("emailed_at")
+  emailStatus     EmailStatus   @default(PENDING) @map("email_status")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@map("statements")
+}
